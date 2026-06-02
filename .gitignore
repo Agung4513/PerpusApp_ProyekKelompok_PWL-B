@@ -1,0 +1,31 @@
+Environments
+
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+Python
+
+pycache/
+*.py[cod]
+*$py.class
+*.so
+
+Node (Untuk perpus-app jika menggunakan React/Vue/Node)
+
+node_modules/
+dist/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+OS generated files
+
+.DS_Store
+Thumbs.db
