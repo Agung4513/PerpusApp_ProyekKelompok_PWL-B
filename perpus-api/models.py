@@ -9,7 +9,6 @@ class Akun(Base):
     password_hash = Column(String(255))
     role = Column(String(20), default="anggota")
     
-    # Relasi 1-ke-1 dengan tabel Anggota
     profil = relationship("Anggota", back_populates="akun", uselist=False)
 
 class Anggota(Base):
@@ -19,9 +18,7 @@ class Anggota(Base):
     no_telepon = Column(String(20))
     username = Column(String(50), ForeignKey("akun.username")) 
     
-    # Balikan relasi ke Akun
     akun = relationship("Akun", back_populates="profil")
-    # Relasi 1-ke-Banyak dengan Peminjaman (1 orang bisa pinjam banyak buku)
     peminjaman = relationship("Peminjaman", back_populates="peminjam")
 
 class Kategori(Base):
@@ -38,6 +35,11 @@ class Buku(Base):
     tahun_terbit = Column(Integer)
     id_kategori = Column(Integer, ForeignKey("kategori.id_kategori"))
     
+    # === TAMBAHAN FASE 3 & 6 (STOK & GAMBAR) ===
+    stok_total = Column(Integer, default=0)
+    stok_tersedia = Column(Integer, default=0)
+    gambar_sampul = Column(String(255), nullable=True) # Akan menyimpan nama/path file gambar
+    
     kategori = relationship("Kategori", back_populates="buku")
     peminjaman = relationship("Peminjaman", back_populates="buku")
 
@@ -48,14 +50,23 @@ class Peminjaman(Base):
     isbn = Column(String(20), ForeignKey("buku.isbn"))
     status_peminjaman = Column(String(20), default="Menunggu")
     
-    # === KOLOM BARU UNTUK SISTEM DENDA ===
-    tanggal_pinjam = Column(DateTime, default=datetime.now)           # Kapan diajukan
-    tanggal_disetujui = Column(DateTime, nullable=True)               # Kapan admin setujui
-    tanggal_jatuh_tempo = Column(DateTime, nullable=True)             # Batas pengembalian
-    tanggal_kembali = Column(DateTime, nullable=True)                 # Kapan dikembalikan
-    denda_per_hari = Column(Integer, default=2000)                    # Rp 2.000/hari
-    total_denda = Column(Integer, default=0)                          # Total denda yang harus dibayar
-    status_denda = Column(String(20), default="Tidak Ada")            # Tidak Ada / Belum Lunas / Lunas
+    # === SISTEM DENDA ===
+    tanggal_pinjam = Column(DateTime, default=datetime.now)
+    tanggal_disetujui = Column(DateTime, nullable=True)
+    tanggal_jatuh_tempo = Column(DateTime, nullable=True)
+    tanggal_kembali = Column(DateTime, nullable=True)
+    denda_per_hari = Column(Integer, default=2000)
+    total_denda = Column(Integer, default=0)
+    status_denda = Column(String(20), default="Tidak Ada")
     
     peminjam = relationship("Anggota", back_populates="peminjaman")
     buku = relationship("Buku", back_populates="peminjaman")
+
+# === TAMBAHAN FASE 7 (LOG AKTIVITAS ADMIN) ===
+class LogAktivitas(Base):
+    __tablename__ = "log_aktivitas"
+    id_log = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    username = Column(String(50), ForeignKey("akun.username"), nullable=True)
+    aksi = Column(String(100))
+    waktu = Column(DateTime, default=datetime.now)
+    detail = Column(String(255), nullable=True)
