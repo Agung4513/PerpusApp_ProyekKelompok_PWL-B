@@ -1,7 +1,24 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime, timedelta
+
+# === TAMBAHAN RELASI MANY-TO-MANY (BUKU & PENULIS) ===
+# Tabel asosiasi ini tidak butuh class model tersendiri, cukup didefinisikan seperti ini
+buku_penulis_association = Table(
+    'buku_penulis',
+    Base.metadata,
+    Column('isbn', String(20), ForeignKey('buku.isbn'), primary_key=True),
+    Column('id_penulis', Integer, ForeignKey('penulis.id_penulis'), primary_key=True)
+)
+
+class Penulis(Base):
+    __tablename__ = "penulis"
+    id_penulis = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nama_penulis = Column(String(100))
+    
+    # Relasi balik ke buku
+    buku = relationship("Buku", secondary=buku_penulis_association, back_populates="penulis")
 
 class Akun(Base):
     __tablename__ = "akun"
@@ -35,13 +52,18 @@ class Buku(Base):
     tahun_terbit = Column(Integer)
     id_kategori = Column(Integer, ForeignKey("kategori.id_kategori"))
     
-    # === TAMBAHAN FASE 3 & 6 (STOK & GAMBAR) ===
+    # === STOK & GAMBAR ===
     stok_total = Column(Integer, default=0)
     stok_tersedia = Column(Integer, default=0)
-    gambar_sampul = Column(String(255), nullable=True) # Akan menyimpan nama/path file gambar
+    gambar_sampul = Column(String(255), nullable=True)
     
+    # Relasi
     kategori = relationship("Kategori", back_populates="buku")
-    peminjaman = relationship("Peminjaman", back_populates="buku")
+    # PERBAIKAN DI SINI: back_populates harus mengarah ke variabel 'buku' di class Peminjaman
+    peminjaman = relationship("Peminjaman", back_populates="buku") 
+    
+    # === RELASI KE PENULIS ===
+    penulis = relationship("Penulis", secondary=buku_penulis_association, back_populates="buku")
 
 class Peminjaman(Base):
     __tablename__ = "peminjaman"
@@ -62,7 +84,6 @@ class Peminjaman(Base):
     peminjam = relationship("Anggota", back_populates="peminjaman")
     buku = relationship("Buku", back_populates="peminjaman")
 
-# === TAMBAHAN FASE 7 (LOG AKTIVITAS ADMIN) ===
 class LogAktivitas(Base):
     __tablename__ = "log_aktivitas"
     id_log = Column(Integer, primary_key=True, index=True, autoincrement=True)
